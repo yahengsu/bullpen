@@ -1,0 +1,30 @@
+.header {
+    background-color: #f8f9fa;
+    padding: 10px 20px;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 20px;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #343a40;
+}
+
+.score {
+    display: flex;
+    align-items: center;
+}
+
+.scoreLabel {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-right: 8px;
+}
+
+.scoreValue {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #28a745;
+}

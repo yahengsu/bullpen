@@ -1,0 +1,52 @@
+.taskListContainer {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.taskList {
+    padding: 0 16px 16px;
+}
+.taskItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    position: relative;
+}
+
+.taskTitle {
+    flex-grow: 1;
+    margin-right: 12px;
+}
+
+.taskTitle.completed {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.buttonWrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.completeButton {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.completeButton:hover {
+    background-color: #0056b3;
+}
+
+.completeButton.completed {
+    background-color: #28a745;
+}
