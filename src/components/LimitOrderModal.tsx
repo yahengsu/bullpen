@@ -4,19 +4,23 @@ import styles from "../styles/LimitOrderModal.module.css";
 interface LimitOrderModalProps {
   price: number;
   onClose: () => void;
-  onSubmit: (order: { price: number; amount: number }) => void;
+  onSubmit: (order: {
+    price: number;
+    amount: number;
+    type: "buy" | "sell";
+  }) => void;
 }
-
 const LimitOrderModal: React.FC<LimitOrderModalProps> = ({
   price,
   onClose,
   onSubmit,
 }) => {
   const [amount, setAmount] = useState("");
+  const [orderType, setOrderType] = useState<"buy" | "sell">("buy");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ price, amount: parseFloat(amount) });
+    onSubmit({ price, amount: parseFloat(amount), type: orderType });
     onClose();
   };
 
@@ -39,9 +43,38 @@ const LimitOrderModal: React.FC<LimitOrderModalProps> = ({
               required
             />
           </div>
+          <div className={styles.formGroup}>
+            <label>Order Type:</label>
+            <div className={styles.buttonGroup}>
+              <button
+                type="button"
+                className={`${styles.orderTypeButton} ${
+                  orderType === "buy" ? styles.active : ""
+                }`}
+                onClick={() => setOrderType("buy")}
+              >
+                Buy
+              </button>
+              <button
+                type="button"
+                className={`${styles.orderTypeButton} ${
+                  orderType === "sell" ? styles.active : ""
+                }`}
+                onClick={() => setOrderType("sell")}
+              >
+                Sell
+              </button>
+            </div>
+          </div>
           <div className={styles.buttonGroup}>
-            <button type="submit">Place Order</button>
-            <button type="button" onClick={onClose}>
+            <button type="submit" className={styles.submitButton}>
+              Place Order
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className={styles.cancelButton}
+            >
               Cancel
             </button>
           </div>
