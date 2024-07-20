@@ -13,6 +13,12 @@ import {
   IPriceLine,
 } from "lightweight-charts";
 import styles from "../styles/TradingViewChart.module.css";
+import {
+  binanceKlineDataToCandlestickData,
+  BinanceKlineWSData,
+  convertTimestamp,
+  fetchHistoricalData,
+} from "@/types/Binance";
 
 interface TradingViewChartProps {
   onPriceClick: (price: number) => void;
@@ -21,132 +27,160 @@ interface TradingViewChartProps {
   onCancelAllOrders: () => void;
 }
 
-interface BinanceKlineData {
-  e: string;
-  E: number;
-  s: string;
-  k: {
-    t: number;
-    T: number;
-    s: string;
-    i: string;
-    f: number;
-    L: number;
-    o: string;
-    c: string;
-    h: string;
-    l: string;
-    v: string;
-    n: number;
-    x: boolean;
-    q: string;
-    V: string;
-    Q: string;
-    B: string;
-  };
-}
-
 const TradingViewChart: React.FC<TradingViewChartProps> = ({
   onPriceClick,
   symbol,
   orders,
   onCancelAllOrders,
 }) => {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
+  const chartContainerRef = useRef(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const orderLinesRef = useRef<Map<string, IPriceLine>>(new Map());
+  const isChartVisibleRef = useRef(true);
 
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
 
-  const convertTimestamp = useCallback((timeMs: number): UTCTimestamp => {
-    return Math.floor(timeMs / 1000) as UTCTimestamp;
-  }, []);
+  const connectWebSocket = useCallback(() => {
+    if (
+      wsRef.current &&
+      (wsRef.current.readyState === WebSocket.OPEN ||
+        wsRef.current.readyState === WebSocket.CONNECTING)
+    ) {
+      return;
+    }
 
-  const binanceKlineDataToCandlestickData = (
-    binanceData: BinanceKlineData
-  ): CandlestickData => {
-    return {
-      time: convertTimestamp(binanceData.k.t),
-      open: parseFloat(binanceData.k.o),
-      high: parseFloat(binanceData.k.h),
-      low: parseFloat(binanceData.k.l),
-      close: parseFloat(binanceData.k.c),
+    const ws = new WebSocket(
+      `wss://data-stream.binance.vision:443/ws/${symbol}@kline_1m`
+    );
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
     };
-  };
+
+    ws.onmessage = (event: MessageEvent) => {
+      try {
+        const data: BinanceKlineWSData = JSON.parse(event.data);
+        const candleStickData = binanceKlineDataToCandlestickData(data);
+        if (seriesRef.current && isChartVisibleRef.current) {
+          seriesRef.current.update(candleStickData);
+        }
+      } catch (error) {
+        console.error("Error parsing WebSocket data:", error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onclose = (event) => {
+      console.log("WebSocket disconnected:", event.code, event.reason);
+      wsRef.current = null;
+      reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+    };
+
+    wsRef.current = ws;
+  }, [symbol]);
 
   useEffect(() => {
-    if (!chartContainerRef.current) return;
+    const initChart = async () => {
+      if (!chartContainerRef.current) return;
 
-    const chartOptions: DeepPartial<ChartOptions> = {
-      width: chartContainerRef.current.clientWidth,
-      height: 400,
-      layout: {
-        background: { type: ColorType.Solid, color: "#ffffff" },
-        textColor: "#333",
-      },
-      grid: {
-        vertLines: { color: "#f0f0f0" },
-        horzLines: { color: "#f0f0f0" },
-      },
-      crosshair: {
-        mode: 1,
-      },
-      timeScale: {
-        borderColor: "#cccccc",
-        timeVisible: true,
-        secondsVisible: false,
-        barSpacing: 10,
-      },
+      isChartVisibleRef.current = true;
+
+      const chartOptions: DeepPartial<ChartOptions> = {
+        height: 400,
+        layout: {
+          background: { type: ColorType.Solid, color: "#111111" },
+          textColor: "#fff",
+        },
+        grid: {
+          vertLines: { color: "#333" },
+          horzLines: { color: "#333" },
+        },
+        crosshair: {
+          mode: 1,
+        },
+        timeScale: {
+          borderColor: "#cccccc",
+          timeVisible: true,
+          secondsVisible: false,
+          barSpacing: 10,
+        },
+      };
+
+      const chart = createChart(chartContainerRef.current, chartOptions);
+      chart.timeScale().fitContent();
+
+      const historicalData = await fetchHistoricalData(symbol);
+      const candlestickSeries = chart.addCandlestickSeries();
+      candlestickSeries.setData(historicalData);
+      seriesRef.current = candlestickSeries;
+
+      const handleResize = () => {
+        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+      };
+
+      chart.subscribeCrosshairMove((param: MouseEventParams<Time>) => {
+        if (param.point && param.time && seriesRef.current) {
+          const price = seriesRef.current.coordinateToPrice(param.point.y);
+          if (price !== null) {
+            setCurrentPrice(price);
+          }
+        } else {
+          setCurrentPrice(null);
+        }
+      });
+
+      chart.subscribeClick((param: MouseEventParams<Time>) => {
+        if (param.point && param.time && seriesRef.current) {
+          const price = seriesRef.current.coordinateToPrice(param.point.y);
+          if (price !== null) {
+            onPriceClick(price);
+          }
+        }
+      });
+
+      window.addEventListener("resize", handleResize);
+
+      return () => {
+        isChartVisibleRef.current = false;
+        // Clear all order lines before removing the chart
+        orderLinesRef.current.forEach((line) => {
+          candlestickSeries.removePriceLine(line);
+        });
+        orderLinesRef.current.clear();
+        window.removeEventListener("resize", handleResize);
+        chart.remove();
+      };
     };
 
-    const chart = createChart(chartContainerRef.current, chartOptions);
-    const candlestickSeries = chart.addCandlestickSeries();
+    initChart();
+  }, []);
 
-    chartRef.current = chart;
-    seriesRef.current = candlestickSeries;
-
-    chart.subscribeCrosshairMove((param: MouseEventParams<Time>) => {
-      if (param.point && param.time && seriesRef.current) {
-        const price = seriesRef.current.coordinateToPrice(param.point.y);
-        if (price !== null) {
-          setCurrentPrice(price);
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      isChartVisibleRef.current = !document.hidden;
+      if (document.hidden) {
+        if (wsRef.current) {
+          wsRef.current.close();
+          wsRef.current = null;
         }
       } else {
-        setCurrentPrice(null);
+        connectWebSocket();
       }
-    });
+    };
 
-    chart.subscribeClick((param: MouseEventParams<Time>) => {
-      if (param.point && param.time && seriesRef.current) {
-        const price = seriesRef.current.coordinateToPrice(param.point.y);
-        if (price !== null) {
-          onPriceClick(price);
-        }
-      }
-    });
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      if (
-        entries.length === 0 ||
-        entries[0].target !== chartContainerRef.current
-      )
-        return;
-      const newRect = entries[0].contentRect;
-      chart.applyOptions({ width: newRect.width, height: newRect.height });
-    });
-
-    resizeObserver.observe(chartContainerRef.current);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      // Clear all order lines before removing the chart
-      orderLinesRef.current.forEach((line) => {
-        candlestickSeries.removePriceLine(line);
-      });
-      orderLinesRef.current.clear();
-      chart.remove();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
@@ -197,52 +231,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   }, [orders]);
 
   useEffect(() => {
-    const connectWebSocket = () => {
-      if (
-        wsRef.current &&
-        (wsRef.current.readyState === WebSocket.OPEN ||
-          wsRef.current.readyState === WebSocket.CONNECTING)
-      ) {
-        return;
-      }
-
-      const ws = new WebSocket(
-        `wss://data-stream.binance.vision:443/ws/${symbol}@kline_1m`
-      );
-
-      ws.onopen = () => {
-        console.log("WebSocket connected");
-        if (reconnectTimeoutRef.current) {
-          clearTimeout(reconnectTimeoutRef.current);
-          reconnectTimeoutRef.current = null;
-        }
-      };
-
-      ws.onmessage = (event: MessageEvent) => {
-        try {
-          const data: BinanceKlineData = JSON.parse(event.data);
-          const candleStickData = binanceKlineDataToCandlestickData(data);
-          if (seriesRef.current) {
-            seriesRef.current.update(candleStickData);
-          }
-        } catch (error) {
-          console.error("Error parsing WebSocket data:", error);
-        }
-      };
-
-      ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-      };
-
-      ws.onclose = (event) => {
-        console.log("WebSocket disconnected:", event.code, event.reason);
-        wsRef.current = null;
-        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
-      };
-
-      wsRef.current = ws;
-    };
-
     connectWebSocket();
 
     return () => {
@@ -253,7 +241,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [binanceKlineDataToCandlestickData]);
+  }, [connectWebSocket]);
 
   return (
     <div className={styles.chartWrapper}>

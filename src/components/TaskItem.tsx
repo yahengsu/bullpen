@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import styles from "../styles/Task.module.css";
-import { Task } from "@/types/Task";
+import { Task, TaskStatus } from "@/types/Task";
 import TaskAnimation from "./TaskAnimation";
 
 interface TaskItemProps {
@@ -13,8 +13,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, isAnimating, onToggle }) => {
   const [coinKey, setCoinKey] = useState(0);
 
   const handleToggle = useCallback(() => {
-    if (!task.completed) {
+    if (task.completed === TaskStatus.Claimable) {
       setCoinKey((prev) => prev + 1);
+    }
+    if (task.completed === TaskStatus.Unclaimable) {
+      return;
     }
     onToggle(task.id);
   }, [task.completed, task.id, onToggle]);
@@ -32,11 +35,13 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, isAnimating, onToggle }) => {
         <TaskAnimation key={coinKey} show={isAnimating} points={task.points} />
         <button
           onClick={handleToggle}
-          className={`${styles.completeButton} ${
-            task.completed ? styles.completed : ""
-          }`}
+          className={`${styles.completeButton} ${task.completed}`}
         >
-          {task.completed ? "DONE" : "COMPLETE"}
+          {task.completed === TaskStatus.Claimed
+            ? "DONE"
+            : task.completed === TaskStatus.Claimable
+            ? "CLAIM"
+            : "TODO"}
         </button>
       </div>
     </div>
