@@ -1,98 +1,103 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
 }
 
 .viewContent {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    min-height: 100%;
-    padding: 20px;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.tabContent {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s ease-in-out;
+}
+
+.slideLeft {
+  transform: translateX(-100%);
+}
+
+.slideRight {
+  transform: translateX(100%);
+}
+
+.active {
+  transform: translateX(0);
 }
 
 .taskListsContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 600px;
-    margin: 0 auto;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .header {
-    flex: 0 0 10%;
-    width: 100%;
-    background-color: #000;
-    color: green;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-@keyframes fadeColor {
-    0%,
-    100% {
-        color: green;
-    }
-
-    50% {
-        color: black;
-    }
+  flex: 0 0 10%;
+  width: 100%;
+  background-color: #000;
+  color: #008170;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .header h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    animation: fadeColor 2s ease-in-out infinite;
+  margin: 0;
+  font-size: 1.5rem;
 }
 
 .view {
-    flex: 0 0 80%;
-    width: 100%;
-    overflow-y: auto;
-    padding: 20px;
-    box-sizing: border-box;
+  flex: 0 0 80%;
+  width: 100%;
+  overflow-y: auto;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .drawer {
-    flex: 0 0 10%;
-    width: 100%;
-    background-color: #000;
-    border-top: 1px solid #aaa;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+  flex: 0 0 10%;
+  width: 100%;
+  background-color: #000;
+  border-top: 1px solid #aaa;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
 .tab {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    border: none;
-    background-color: transparent;
-    cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
 }
 
 .tab svg {
-    width: 24px;
-    height: 24px;
-    margin-bottom: 5px;
-    color: #fff;
-    fill: #fff;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 5px;
+  color: #fff;
+  fill: #fff;
 }
 
 .tab span {
-    font-size: 12px;
+  font-size: 12px;
 }
 
 .activeTab {
-    color: green;
+  color: #008170;
 }
 
 .activeTab svg {
-    fill: green;
+  fill: #008170;
 }

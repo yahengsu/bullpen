@@ -1,22 +1,18 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   createChart,
-  IChartApi,
-  CandlestickData,
   ChartOptions,
   DeepPartial,
   MouseEventParams,
   ISeriesApi,
   ColorType,
   Time,
-  UTCTimestamp,
   IPriceLine,
 } from "lightweight-charts";
 import styles from "../styles/TradingViewChart.module.css";
 import {
   binanceKlineDataToCandlestickData,
   BinanceKlineWSData,
-  convertTimestamp,
   fetchHistoricalData,
 } from "@/types/Binance";
 
@@ -123,10 +119,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       candlestickSeries.setData(historicalData);
       seriesRef.current = candlestickSeries;
 
-      const handleResize = () => {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-      };
-
       chart.subscribeCrosshairMove((param: MouseEventParams<Time>) => {
         if (param.point && param.time && seriesRef.current) {
           const price = seriesRef.current.coordinateToPrice(param.point.y);
@@ -147,8 +139,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         }
       });
 
-      window.addEventListener("resize", handleResize);
-
       return () => {
         isChartVisibleRef.current = false;
         // Clear all order lines before removing the chart
@@ -156,7 +146,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
           candlestickSeries.removePriceLine(line);
         });
         orderLinesRef.current.clear();
-        window.removeEventListener("resize", handleResize);
         chart.remove();
       };
     };

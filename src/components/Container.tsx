@@ -22,6 +22,9 @@ interface ContainerProps {
 
 const Container: React.FC<ContainerProps> = ({ tabs, headerTitle }) => {
   const [activeTab, setActiveTab] = useState(0);
+  const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(
+    null
+  );
 
   const [dailyTasks, setDailyTasks] = useState<Task[]>([]);
   const [weeklyTasks, setWeeklyTasks] = useState<Task[]>([]);
@@ -102,22 +105,35 @@ const Container: React.FC<ContainerProps> = ({ tabs, headerTitle }) => {
   const totalScore = useMemo(() => {
     return (
       dailyTasks.reduce(
-        (acc, task) => (task.completed ? acc + task.points : acc),
+        (acc, task) =>
+          task.completed === TaskStatus.Claimed ? acc + task.points : acc,
         0
       ) +
       weeklyTasks.reduce(
-        (acc, task) => (task.completed ? acc + task.points : acc),
+        (acc, task) =>
+          task.completed === TaskStatus.Claimed ? acc + task.points : acc,
         0
       )
     );
   }, [dailyTasks, weeklyTasks]);
+
+  const getTabClassName = (tabIndex: number) => {
+    if (tabIndex === activeTab) return `${styles.tabContent} ${styles.active}`;
+    if (slideDirection === "left" && tabIndex > activeTab)
+      return `${styles.tabContent} ${styles.slideRight}`;
+    if (slideDirection === "right" && tabIndex < activeTab)
+      return `${styles.tabContent} ${styles.slideLeft}`;
+    return `${styles.tabContent} ${
+      tabIndex < activeTab ? styles.slideLeft : styles.slideRight
+    }`;
+  };
 
   return (
     <div className={styles.container}>
       <Header title={headerTitle} />
       <View>
         <div className={styles.viewContent}>
-          {activeTab === 0 && (
+          <div className={getTabClassName(0)}>
             <div className={styles.taskListsContainer}>
               <TaskHeader title={`Total Score: ${totalScore}`} />
               <TaskList
@@ -133,8 +149,10 @@ const Container: React.FC<ContainerProps> = ({ tabs, headerTitle }) => {
                 animatingTaskId={animatingTaskId}
               />
             </div>
-          )}
-          {activeTab === 1 && <Trade />}
+          </div>
+          <div className={getTabClassName(1)}>
+            <Trade />
+          </div>
         </div>
       </View>
       <Drawer>

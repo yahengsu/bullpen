@@ -1,31 +1,32 @@
 .header {
-    background-color: #444444;
-    padding: 10px 20px;
-    text-align: center;
-    border-bottom: 1px solid black;
-    margin-bottom: 20px;
-    color: white;
+  background-color: #232d3f;
+  padding: 10px 20px;
+  text-align: center;
+  border-bottom: 1px solid 232D3F;
+  margin-bottom: 20px;
+  color: white;
+  border-radius: 8px;
 }
 
 .title {
-    margin: 0;
-    font-size: 1.2rem;
-    color: white;
+  margin: 0;
+  font-size: 1.2rem;
+  color: white;
 }
 
 .score {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .scoreLabel {
-    font-size: 1rem;
-    color: white;
-    margin-right: 8px;
+  font-size: 1rem;
+  color: white;
+  margin-right: 8px;
 }
 
 .scoreValue {
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: #28a745;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #28a745;
 }
