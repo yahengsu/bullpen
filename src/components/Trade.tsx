@@ -32,12 +32,13 @@ const Trade: React.FC = () => {
       ...order,
     };
     setOrders((prevOrders) => [...prevOrders, newOrder]);
+    // ideally would send this order to an exchange API or route it internally
     console.log("Limit order placed:", newOrder);
   };
 
   const handleCancelAllOrders = () => {
     setOrders([]);
-    // You might want to add additional logic here, such as notifying a backend
+    // ideally would handle this with an API call
     console.log("All orders cancelled");
   };
 

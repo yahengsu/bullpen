@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
 .viewContent {
@@ -10,10 +11,9 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  overflow-y: auto;
-  flex-grow: 1;
-  --webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
 }
+
 .tabContent {
   position: absolute;
   width: 100%;
@@ -36,10 +36,10 @@
 .taskListsContainer {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-width: 600px;
-  margin: 0 auto;
   width: 100%;
+  padding: 20px;
+  margin-bottom: 150px;
+  overflow-y: auto;
 }
 
 .header {
@@ -50,6 +50,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 50px;
+  position: sticky;
+  top: 0;
+  left: 0;
 }
 
 .header h1 {
@@ -60,18 +64,22 @@
 .view {
   flex: 0 0 80%;
   width: 100%;
-  overflow-y: auto;
   padding: 20px;
+  overflow-y: scroll;
 }
 
 .drawer {
   flex: 0 0 10%;
   width: 100%;
   background-color: #000;
-  border-top: 1px solid #aaa;
   display: flex;
   justify-content: space-around;
   align-items: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
 }
 
 .tab {

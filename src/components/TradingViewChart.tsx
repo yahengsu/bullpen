@@ -141,7 +141,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
       return () => {
         isChartVisibleRef.current = false;
-        // Clear all order lines before removing the chart
         orderLinesRef.current.forEach((line) => {
           candlestickSeries.removePriceLine(line);
         });
@@ -173,11 +172,9 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     };
   }, []);
 
-  // Update order lines when orders change
   useEffect(() => {
     if (!seriesRef.current) return;
 
-    // Remove old lines
     orderLinesRef.current.forEach((line, id) => {
       if (!orders.some((order) => order.id === id)) {
         seriesRef.current?.removePriceLine(line);
@@ -185,7 +182,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       }
     });
 
-    // Add or update lines
     orders.forEach((order) => {
       if (orderLinesRef.current.has(order.id)) {
         const line = orderLinesRef.current.get(order.id)!;

@@ -22,6 +22,7 @@ const TaskAnimation: React.FC<TaskAnimationProps> = ({ show, points }) => {
   return (
     <div className={styles.coin}>
       +{points}
+      {/* SVG for a coin asset */}
       <svg
         width="16"
         height="16"

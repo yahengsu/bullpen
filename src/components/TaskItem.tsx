@@ -13,6 +13,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, isAnimating, onToggle }) => {
   const [coinKey, setCoinKey] = useState(0);
 
   const handleToggle = useCallback(() => {
+    // ideally would also make an API call to update points interally
     if (task.completed === TaskStatus.Claimable) {
       setCoinKey((prev) => prev + 1);
     }
